@@ -14,22 +14,12 @@
  *
  */
 
-defined('TYPO3_MODE') or die();
-
-if (TYPO3_MODE === 'BE') {
-	\TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-		'MatteoBonaker.MbGit',
-		'file',
-		'list',
-		'',
-		[
-			'FileList' => 'index, search',
-		],
-		[
-			'access' => 'user,group',
-			'workspaces' => 'online,custom',
-			'icon' => 'EXT:mb_git/Resources/Public/Icons/module-mbgit.svg',
-			'labels' => 'LLL:EXT:lang/locallang_mod_file_list.xlf'
-		]
-	);
-}
+/** @var \TYPO3\CMS\Core\Imaging\IconRegistry $iconRegistry */
+$iconRegistry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(
+	\TYPO3\CMS\Core\Imaging\IconRegistry::class
+);
+$iconRegistry->registerIcon(
+	'tx-mbgit-git-logo',
+	\TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
+	['source' => 'EXT:mb_git/Resources/Public/Icons/git-logo.svg']
+);

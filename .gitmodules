@@ -1,0 +1,9 @@
+[submodule "Psr"]
+	path = Psr
+	url = ./Resources/Private/Contrib/Psr/
+[submodule "Resources/Private/Contrib/Psr"]
+	path = Resources/Private/Contrib/Psr
+	url = https://github.com/php-fig/log.git
+[submodule "Resources/Private/Contrib/Symfony"]
+	path = Resources/Private/Contrib/Symfony
+	url = https://github.com/symfony/process.git

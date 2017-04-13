@@ -28,12 +28,18 @@ $EM_CONF[$_EXTKEY] = array (
 	'version' => '0.0.1',
 	'autoload' =>
 		array(
-			'psr-4' => array('MatteoBonaker\\MbGit\\' => 'Classes')
+			'psr-4' => array(
+				'MatteoBonaker\\MbGit\\' => 'Classes',
+				'Gitonomy\\' => 'Resources/Private/Contrib/Gitonomy',
+				'Symfony\\' => 'Resources/Private/Contrib/Symfony',
+				'Psr\\' => 'Resources/Private/Contrib/Psr/Psr',
+			),
 		),
 	'constraints' =>
 		array (
 			'depends' =>  array (
 				'typo3' => '7.6.0-7.6.99',
+				'php' => '7.0.0-7.1.99',
 			),
 			'conflicts' =>  array (
 			),
