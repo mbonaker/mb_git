@@ -293,6 +293,12 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 				->setIcon($iconFactory->getIcon('octicons-check', Icon::SIZE_SMALL));
 			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
 
+			// TODO Git log (octicons-history)
+
+			// TODO Git remote (octicons-server)
+
+			// TODO Git push (octicons-cloud-upload)
+
 		} elseif($this->folderObject) {
 
 			$newButton = $buttonBar->makeInputButton()
@@ -302,6 +308,8 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 				->setTitle('Git init') // TODO Translation
 				->setIcon($iconFactory->getIcon('tx-mbgit-git-logo', Icon::SIZE_SMALL));
 			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
+
+			// TODO Git clone (octicons-cloud-download)
 
 		}
 	}
