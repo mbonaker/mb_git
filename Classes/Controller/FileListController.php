@@ -17,6 +17,7 @@
 namespace MatteoBonaker\MbGit\Controller;
 
 
+use MatteoBonaker\MbGit\Exception\GitException;
 use MatteoBonaker\MbGit\FileList;
 use MatteoBonaker\MbGit\Resource\GitCapableResourceFactory;
 use MatteoBonaker\MbGit\Resource\GitCapableResourceStorage;
@@ -37,6 +38,7 @@ use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\File\ExtendedFileUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
+use TYPO3\CMS\Fluid\View\StandaloneView;
 
 class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListController {
 
@@ -152,7 +154,18 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 		// There there was access to this file path, continue, make the list
 		if ($this->folderObject) {
 
-			$this->processGitCommand();
+			try {
+				$this->processGitCommand();
+			} catch(GitException $gitException) {
+				// Render the error flash message fluid partial
+
+				/** @var StandaloneView $result */
+				$result = GeneralUtility::makeInstance(StandaloneView::class, $this->configurationManager->getContentObject());
+				$result->assign('gitException', $gitException);
+				$result->setTemplatePathAndFilename(ExtensionManagementUtility::extPath('mb_git') . '/Resources/Private/Partials/Exception.html');
+				// TODO Translation
+				$this->addFlashMessage($result->render(), 'Could not process the git command.', AbstractMessage::ERROR);
+			}
 
 			// Create fileListing object
 			$this->filelist = GeneralUtility::makeInstance(FileList::class, $this);

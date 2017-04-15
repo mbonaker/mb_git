@@ -1,0 +1,4 @@
+<f:format.html>{gitException.message}</f:format.html>
+<f:if xmlns:f="http://typo3.org/ns/TYPO3/Fluid/ViewHelpers" condition="{gitException.previous}">
+	<f:format.html>{gitException.previous.message}</f:format.html>
+</f:if>

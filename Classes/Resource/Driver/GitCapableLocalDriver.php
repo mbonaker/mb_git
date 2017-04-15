@@ -18,8 +18,10 @@ namespace MatteoBonaker\MbGit\Resource\Driver;
 
 
 use Gitonomy\Git\Admin;
+use Gitonomy\Git\Exception\ProcessException;
 use Gitonomy\Git\Exception\RuntimeException;
 use Gitonomy\Git\Repository;
+use MatteoBonaker\MbGit\Exception\GitException;
 use TYPO3\CMS\Core\Resource\Driver\LocalDriver;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceInterface;
@@ -125,13 +127,24 @@ class GitCapableLocalDriver extends LocalDriver {
 	public function gitCommit(ResourceInterface $item, $message, $mail, $name) {
 		$author = $name . ' <' . $mail . '>';
 		$repository = $this->getRepository($item);
-		$repository->run('add', [
-			'.'
-		]);
-		// TODO Error handling
-		$repository->run('commit', [
-			'--author=' . $author,
-			'--message=' . $message,
-		]);
+		try {
+			$repository->run('add', [
+				'-N',
+				'.',
+			]);
+		} catch(ProcessException $exception) {
+			// TODO Translation
+			throw new GitException('Could not add all untracked files to the index.', 1492246295, $exception);
+		}
+		try {
+			$repository->run('commit', [
+				'-a',
+				'--author=' . $author,
+				'--message=' . $message,
+			]);
+		} catch(ProcessException $exception) {
+			// TODO Translation
+			throw new GitException('Could not execute the commit.', 1492246408, $exception);
+		}
 	}
 }
