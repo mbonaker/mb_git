@@ -1,17 +1,26 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: matteo
- * Date: 13.04.17
- * Time: 19:40
- */
 
 namespace MatteoBonaker\MbGit\Resource;
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ *
+ */
 
 
 use MatteoBonaker\MbGit\Resource\Driver\GitCapableLocalDriver;
 use TYPO3\CMS\Core\Resource\Driver\LocalDriver;
 use TYPO3\CMS\Core\Resource\Folder;
+use TYPO3\CMS\Core\Resource\ResourceInterface;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -75,5 +84,13 @@ class GitCapableResourceStorage extends \TYPO3\CMS\Core\Resource\ResourceStorage
 		} else {
 			return GitCapableResourceFactory::getInstance()->createFolderObject($this, $this->driver->getRootLevelFolder(), '');
 		}
+	}
+
+	public function gitCommit(ResourceInterface $item, $message, $mail, $name) {
+		$this->getGitCapableLocalDriver()->gitCommit($item, $message, $mail, $name);
+	}
+
+	public function gitConfig(ResourceInterface $item, $key, $value) {
+		$this->getGitCapableLocalDriver()->gitConfig($item, $key, $value);
 	}
 }

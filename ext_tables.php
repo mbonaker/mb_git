@@ -24,6 +24,7 @@ if (TYPO3_MODE === 'BE') {
 		'',
 		[
 			'FileList' => 'index, search',
+			'Git' => 'commit',
 		],
 		[
 			'access' => 'user,group',

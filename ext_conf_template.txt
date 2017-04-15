@@ -1,0 +1,5 @@
+# cat=basic; type=string; label=Name for committer identification
+git.config.user.name =
+
+# cat=basic; type=email; label=E-Mail for committer identification
+git.config.user.email =

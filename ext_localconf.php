@@ -23,3 +23,8 @@ $iconRegistry->registerIcon(
 	\TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
 	['source' => 'EXT:mb_git/Resources/Public/Icons/git-logo.svg']
 );
+$iconRegistry->registerIcon(
+	'octicons-check',
+	\TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
+	['source' => 'EXT:mb_git/Resources/Public/Octicons/check.svg']
+);

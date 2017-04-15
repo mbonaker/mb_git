@@ -1,12 +1,20 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: matteo
- * Date: 13.04.17
- * Time: 22:07
- */
 
 namespace MatteoBonaker\MbGit\Resource\Driver;
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ *
+ */
 
 
 use Gitonomy\Git\Admin;
@@ -57,6 +65,14 @@ class GitCapableLocalDriver extends LocalDriver {
 		return $repository;
 	}
 
+	public function gitConfig(ResourceInterface $item, $key, $value) {
+		// TODO Error handling
+		$this->getRepository($item)->run('config', [
+			$key,
+			$value,
+		]);
+	}
+
 	/**
 	 * Get a hierarchical list of resources that are part of the path of $item (including itself).
 	 *
@@ -104,5 +120,18 @@ class GitCapableLocalDriver extends LocalDriver {
 			}
 		}
 		return null;
+	}
+
+	public function gitCommit(ResourceInterface $item, $message, $mail, $name) {
+		$author = $name . ' <' . $mail . '>';
+		$repository = $this->getRepository($item);
+		$repository->run('add', [
+			'.'
+		]);
+		// TODO Error handling
+		$repository->run('commit', [
+			'--author=' . $author,
+			'--message=' . $message,
+		]);
 	}
 }

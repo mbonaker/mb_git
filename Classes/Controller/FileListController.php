@@ -20,6 +20,7 @@ namespace MatteoBonaker\MbGit\Controller;
 use MatteoBonaker\MbGit\FileList;
 use MatteoBonaker\MbGit\Resource\GitCapableResourceFactory;
 use MatteoBonaker\MbGit\Resource\GitCapableResourceStorage;
+use MatteoBonaker\MbGit\Service\ExtensionConfigurationService;
 use TYPO3\CMS\Backend\Clipboard\Clipboard;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\Template\DocumentTemplate;
@@ -284,6 +285,14 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 		$isGit = $this->folderObject && $this->folderObject->hasFolder('.git');
 		$gitButton = null;
 		if ($isGit) {
+			$newButton = $buttonBar->makeInputButton()
+				->setName('git-commit')
+				->setValue((string)true)
+				->setForm('GitCommitForm')
+				->setTitle('Commit changes')// TODO Translation
+				->setIcon($iconFactory->getIcon('octicons-check', Icon::SIZE_SMALL));
+			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
+
 		} elseif($this->folderObject) {
 
 			$newButton = $buttonBar->makeInputButton()
@@ -308,14 +317,31 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 		return $storage;
 	}
 
+	private function mayDoGitCommit() {
+		return !$this->request->hasArgument('noGitCommitting') || !$this->request->getArgument('noGitCommitting');
+	}
+
 	/**
 	 * Process the post commands given to this controller that are related to git.
 	 */
 	public function processGitCommand() {
 		if (GeneralUtility::_POST('git-init')) {
-			$this->getGitStorage()->gitInit($this->folderObject);
-			// TODO Translation
-			$this->addFlashMessage('Git init done.');
+			$extConf = ExtensionConfigurationService::getInstance();
+			$name = $extConf->getGitConfigUserName();
+			$mail = $extConf->getGitConfigUserEmail();
+			if (!empty($name) && GeneralUtility::validEmail($mail)) {
+				$this->getGitStorage()->gitInit($this->folderObject);
+				$this->getGitStorage()->gitConfig($this->folderObject, 'user.name', $extConf->getGitConfigUserName());
+				$this->getGitStorage()->gitConfig($this->folderObject, 'user.email', $extConf->getGitConfigUserEmail());
+				// TODO Translation
+				$this->addFlashMessage('Git init done.');
+			} else {
+				// TODO Translation
+				$this->addFlashMessage('Please set the name and e-mail address in the ext settings correctly.', 'Could not init', AbstractMessage::ERROR);
+			}
+		}
+		if (GeneralUtility::_POST('git-commit') && $this->mayDoGitCommit()) {
+			$this->forward('commit', 'Git');
 		}
 	}
 

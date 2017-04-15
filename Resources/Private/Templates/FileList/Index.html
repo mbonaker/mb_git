@@ -5,6 +5,9 @@
 </f:section>
 
 <f:section name="content">
+	<f:form action="commit" controller="Git" id="GitCommitForm" method="post">
+		<f:form.hidden name="target" value="{folderIdentifier}" />
+	</f:form>
 
 	<f:render partial="SearchForm" arguments="{searchWord:''}" />
 
