@@ -1,0 +1,34 @@
+<!-- <f:comment> -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en"
+	  xmlns:f="http://typo3.org/ns/TYPO3/Fluid/ViewHelpers">
+<body>
+<!-- </f:comment> -->
+	<f:layout name="Default" />
+
+	<f:section name="headline">
+		<h1>{headline}</h1>
+	</f:section>
+
+	<f:section name="content">
+
+		<f:if condition="{noForm}">
+			<f:else>
+				<f:form action="clone" method="post">
+					<div class="form-group">
+						<!-- TODO Translate -->
+						<f:form.textfield name="source" class="form-control t3js-clearable" placeholder="Source" />
+					</div>
+					<f:form.hidden name="target" value="{target}" />
+					<!-- TODO Translate -->
+					<f:form.button class="btn btn-primary" name="run" value="1">Clone</f:form.button>
+				</f:form>
+			</f:else>
+		</f:if>
+
+	</f:section>
+
+<!-- <f:comment> -->
+</body>
+
+</html>
+<!-- </f:comment> -->

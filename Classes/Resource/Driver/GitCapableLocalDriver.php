@@ -147,4 +147,16 @@ class GitCapableLocalDriver extends LocalDriver {
 			throw new GitException('Could not execute the commit.', 1492246408, $exception);
 		}
 	}
+
+	public function gitClone(Folder $folder, $source) {
+		$path = $this->getAbsoluteResourcePath($folder);
+		try {
+			$repository = Admin::cloneTo($path, $source, false);
+		} catch(RuntimeException $exception) {
+			$src = var_export($source, true);
+			$tgt = $path;
+			throw new GitException('Could not clone ' . $src . ' to ' . $tgt . '.', 1492271863, $exception);
+		}
+		$this->repositories[] = $repository;
+	}
 }

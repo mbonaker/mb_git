@@ -322,7 +322,13 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 				->setIcon($iconFactory->getIcon('tx-mbgit-git-logo', Icon::SIZE_SMALL));
 			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
 
-			// TODO Git clone (octicons-cloud-download)
+			$newButton = $buttonBar->makeInputButton()
+				->setName('git-clone')
+				->setValue((string)true)
+				->setForm('GitCloneForm')
+				->setTitle('Git clone') // TODO Translation
+				->setIcon($iconFactory->getIcon('octicons-cloud-download', Icon::SIZE_SMALL));
+			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
 
 		}
 	}

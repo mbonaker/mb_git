@@ -23,8 +23,14 @@ if (TYPO3_MODE === 'BE') {
 		'list',
 		'',
 		[
-			'FileList' => 'index, search',
-			'Git' => 'commit',
+			'FileList' => implode(', ', [
+				'index',
+				'search',
+			]),
+			'Git' => implode(', ', [
+				'commit',
+				'clone',
+			]),
 		],
 		[
 			'access' => 'user,group',
