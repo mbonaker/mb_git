@@ -118,7 +118,9 @@ class GitCapableLocalDriver extends LocalDriver {
 				}
 			}
 			if($element instanceof Folder && $element->hasFolder('.git')) {
-				return new Repository($elementPath);
+				$repository = new Repository($elementPath);
+				$this->repositories[] = $repository;
+				return $repository;
 			}
 		}
 		return null;
