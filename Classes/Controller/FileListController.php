@@ -295,9 +295,8 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 		$iconFactory = $this->view->getModuleTemplate()->getIconFactory();
 
 		// Git button
-		$isGit = $this->folderObject && $this->folderObject->hasFolder('.git');
 		$gitButton = null;
-		if ($isGit) {
+		if ($this->getGitStorage()->isGitVersioned($this->folderObject)) {
 			$newButton = $buttonBar->makeInputButton()
 				->setName('git-commit')
 				->setValue((string)true)

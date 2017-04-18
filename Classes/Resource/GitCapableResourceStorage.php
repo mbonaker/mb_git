@@ -86,6 +86,10 @@ class GitCapableResourceStorage extends \TYPO3\CMS\Core\Resource\ResourceStorage
 		}
 	}
 
+	public function isGitVersioned(ResourceInterface $item) {
+		return $this->getGitCapableLocalDriver()->getRepository($item) !== null;
+	}
+
 	public function gitCommit(ResourceInterface $item, $message, $mail, $name) {
 		$this->getGitCapableLocalDriver()->gitCommit($item, $message, $mail, $name);
 	}
