@@ -15,9 +15,11 @@
 			<f:else>
 				<f:form action="commit" method="post">
 					<div class="form-group">
+						<!-- TODO Translate -->
 						<f:form.textarea name="message" class="form-control t3js-clearable" placeholder="Commit message" />
 					</div>
 					<f:form.hidden name="target" value="{target}" />
+					<!-- TODO Translate -->
 					<f:form.button class="btn btn-primary" name="run" value="1">Commit</f:form.button>
 				</f:form>
 			</f:else>
