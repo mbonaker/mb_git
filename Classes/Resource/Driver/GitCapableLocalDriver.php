@@ -185,10 +185,13 @@ class GitCapableLocalDriver extends LocalDriver {
 		if($remoteString === null) {
 			throw new GitException('Could not get the remotes of this git repository.', 1492622830);
 		}
-		$remoteLines = explode("\n", rtrim($remoteString, "\n"));
+		$remoteLines = explode("\n", $remoteString);
 		/** @var Remote[] $remotes */
 		$remotes = [];
 		foreach($remoteLines as $remoteLineString) {
+			if (empty($remoteLineString)) {
+				continue;
+			}
 			list($name, $url) = preg_split('/\\s+/', $remoteLineString);
 			// TODO Use $direction
 			foreach($remotes as $remote) {
