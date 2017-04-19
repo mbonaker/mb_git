@@ -4,16 +4,21 @@ namespace MatteoBonaker\MbGit\Controller;
 
 
 use MatteoBonaker\MbGit\Exception\GitException;
+use MatteoBonaker\MbGit\Git\Remote;
 use MatteoBonaker\MbGit\Resource\GitCapableResourceFactory;
 use MatteoBonaker\MbGit\Resource\GitCapableResourceStorage;
 use MatteoBonaker\MbGit\Service\ExtensionConfigurationService;
+use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
+use TYPO3\CMS\Core\Imaging\Icon;
+use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Messaging\AbstractMessage;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Fluid\View\StandaloneView;
+use TYPO3\CMS\Lang\LanguageService;
 
 class GitController extends ActionController {
 
@@ -152,6 +157,139 @@ class GitController extends ActionController {
 
 	public function logAction() {
 		$this->view->assign('gitLog', $this->getCurrentStorage()->gitLog($this->getCurrentFolder()));
+	}
+
+	/**
+	 * Returns the Language Service
+	 * @return LanguageService
+	 */
+	protected function getLanguageService() {
+		return $GLOBALS['LANG'];
+	}
+
+	public function remotesAction() {
+		$cmd = $this->request->hasArgument('cmd') ? $this->request->getArgument('cmd') : null;
+		if ($cmd === 'delete') {
+			$remoteName = $this->request->getArgument('remote');
+			try {
+				$this->getCurrentStorage()->gitRemoteRemove($this->getCurrentFolder(), $remoteName);
+				// TODO Translate
+				$this->addFlashMessage('Removed the remote ' . $remoteName);
+			} catch (GitException $gitException) {
+				$this->handleGitException($gitException);
+			}
+		}
+		// Add the buttons
+		/** @var ButtonBar $buttonBar */
+		$buttonBar = $this->view->getModuleTemplate()->getDocHeaderComponent()->getButtonBar();
+
+		/** @var IconFactory $iconFactory */
+		$iconFactory = $this->view->getModuleTemplate()->getIconFactory();
+
+		$newButton = $buttonBar->makeInputButton()
+			->setName('add')
+			->setValue((string)true)
+			->setForm('AddRemoteForm')
+			->setTitle('Add remote')// TODO Translation
+			->setIcon($iconFactory->getIcon('actions-document-new', Icon::SIZE_SMALL));
+		$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 1);
+
+		// Get the current remotes
+		$remotes = $this->getCurrentStorage()->gitGetRemotes($this->getCurrentFolder());
+
+		$this->view->assign('remotes', $remotes);
+		$this->view->assign('target', $this->request->getArgument('target'));
+	}
+
+	/**
+	 * @param string $remoteName
+	 * @return \MatteoBonaker\MbGit\Git\Remote
+	 */
+	protected function getRemote($remoteName) {
+		$remotes = $this->getCurrentStorage()->gitGetRemotes($this->getCurrentFolder());
+
+		foreach ($remotes as $remote) {
+			if ($remote->getName() == $remoteName) {
+				return $remote;
+				break;
+			}
+		}
+		throw new \RuntimeException('Could not get the remote ' . var_export($remoteName, true), 1492628119);
+	}
+
+	public function remoteAction() {
+		// Save it
+		$shallCloseAndSave = GeneralUtility::_GP('_saveandclosedok');
+		$shallSave = GeneralUtility::_GP('_savedok');
+		$shallSave = $shallSave || $shallCloseAndSave;
+		try {
+			if ($shallSave) {
+				$remoteNameBefore = $this->request->getArgument('remote');
+				$newName = $this->request->getArgument('name');
+				$newUrl = $this->request->getArgument('url');
+				if ($remoteNameBefore) {
+					$remote = $this->getRemote($remoteNameBefore);
+					if ($remote->getUrl() != $newUrl) {
+						$remote = $this->getCurrentStorage()->gitRemoteSetUrl($this->getCurrentFolder(), $remote, $newUrl);
+					}
+					if ($remote->getName() != $newName) {
+						$remote = $this->getCurrentStorage()->gitRemoteRename($this->getCurrentFolder(), $remote, $newName);
+					}
+					// TODO Translate
+					$this->addFlashMessage('Changed the remote ' . $remote->getName());
+				} else {
+					$remote = new Remote($newName, $newUrl);
+					$this->getCurrentStorage()->gitRemoteAdd($this->getCurrentFolder(), $remote);
+					// TODO Translate
+					$this->addFlashMessage('Added the remote ' . $remote->getName());
+				}
+			}
+			if ($shallCloseAndSave) {
+				$this->forward('remotes', 'Git', null, [
+					'target' => $this->request->getArgument('target'),
+				]);
+			}
+		} catch(GitException $gitException) {
+			$this->handleGitException($gitException);
+		}
+
+		// Add the buttons
+		/** @var ButtonBar $buttonBar */
+		$buttonBar = $this->view->getModuleTemplate()->getDocHeaderComponent()->getButtonBar();
+
+		/** @var IconFactory $iconFactory */
+		$iconFactory = $this->view->getModuleTemplate()->getIconFactory();
+
+		/** @var LanguageService $lang */
+		$lang = $this->getLanguageService();
+
+		$saveButton = $buttonBar->makeInputButton()
+			->setName('_savedok')
+			->setValue('1')
+			->setForm('RemoteForm')
+			->setIcon($iconFactory->getIcon('actions-document-save', Icon::SIZE_SMALL))
+			->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:rm.saveDoc'));
+
+		$saveAndCloseButton = $buttonBar->makeInputButton()
+			->setName('_saveandclosedok')
+			->setValue('1')
+			->setForm('RemoteForm')
+			->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:rm.saveCloseDoc'))
+			->setIcon($iconFactory->getIcon('actions-document-save-close', Icon::SIZE_SMALL));
+
+		$splitButtonElement = $buttonBar->makeSplitButton()
+			->addItem($saveButton)
+			->addItem($saveAndCloseButton);
+
+		$buttonBar->addButton($splitButtonElement, ButtonBar::BUTTON_POSITION_LEFT, 1);
+
+		// Assign the current remote
+		$editName = $this->request->hasArgument('remote') ? $this->request->getArgument('remote') : null;
+		if ($editName) {
+			$this->view->assign('remote', isset($remote) ? $remote : $this->getRemote($editName));
+		}
+
+		$this->view->assign('target', $this->request->getArgument('target'));
 	}
 
 }

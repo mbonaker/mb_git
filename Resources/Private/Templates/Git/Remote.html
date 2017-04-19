@@ -1,0 +1,45 @@
+<!-- <f:comment> -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en"
+	  xmlns:f="http://typo3.org/ns/TYPO3/Fluid/ViewHelpers">
+<body>
+<!-- </f:comment> -->
+<f:layout name="Default" />
+
+<f:section name="headline">
+	<h1>{headline}</h1>
+</f:section>
+
+<f:section name="content">
+
+	<f:form action="remote" id="RemoteForm" method="post">
+		<div class="form-group">
+			<div class="form-section">
+				<div class="form-group">
+					<label for="remote-name">Name</label>
+					<div class="form-control-wrap">
+						<!-- TODO Translate -->
+						<f:form.textfield name="name" value="{f:if(condition: remote.name, then: remote.name)}" class="form-control" placeholder="Name" />
+					</div>
+				</div>
+			</div>
+			<div class="form-section">
+				<div class="form-group">
+					<label for="remote-name">URL</label>
+					<div class="form-control-wrap">
+						<!-- TODO Translate -->
+						<f:form.textfield name="url" value="{f:if(condition: remote.url, then: remote.url)}" class="form-control" placeholder="URL" />
+					</div>
+				</div>
+			</div>
+		</div>
+		<f:form.hidden name="remote" value="{remote.name}" />
+		<f:form.hidden name="target" value="{target}" />
+	</f:form>
+
+</f:section>
+
+<!-- <f:comment> -->
+</body>
+
+</html>
+<!-- </f:comment> -->

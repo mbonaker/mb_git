@@ -17,6 +17,7 @@ namespace MatteoBonaker\MbGit\Resource;
  */
 
 
+use MatteoBonaker\MbGit\Git\Remote;
 use MatteoBonaker\MbGit\Resource\Driver\GitCapableLocalDriver;
 use TYPO3\CMS\Core\Resource\Driver\LocalDriver;
 use TYPO3\CMS\Core\Resource\Folder;
@@ -104,5 +105,50 @@ class GitCapableResourceStorage extends \TYPO3\CMS\Core\Resource\ResourceStorage
 
 	public function gitLog(ResourceInterface $item) {
 		return $this->getGitCapableLocalDriver()->gitLog($item);
+	}
+
+	/**
+	 * @param ResourceInterface $item
+	 * @return Remote[]
+	 */
+	public function gitGetRemotes(ResourceInterface $item) {
+		return $this->getGitCapableLocalDriver()->gitGetRemotes($item);
+	}
+
+	/**
+	 * @param ResourceInterface $item
+	 * @param Remote $remote
+	 * @param string $newUrl
+	 * @return Remote
+	 */
+	public function gitRemoteSetUrl(ResourceInterface $item, Remote $remote, $newUrl) {
+		return $this->getGitCapableLocalDriver()->gitRemoteSetUrl($item, $remote, $newUrl);
+	}
+
+	/**
+	 * @param ResourceInterface $item
+	 * @param Remote $remote
+	 * @param string $newName
+	 * @return Remote
+	 */
+	public function gitRemoteRename(ResourceInterface $item, Remote $remote, $newName) {
+		return $this->getGitCapableLocalDriver()->gitRemoteRename($item, $remote, $newName);
+	}
+
+	/**
+	 * @param ResourceInterface $item
+	 * @param Remote $remote
+	 * @return void
+	 */
+	public function gitRemoteAdd(ResourceInterface $item, Remote $remote) {
+		$this->getGitCapableLocalDriver()->gitRemoteAdd($item, $remote);
+	}
+
+	/**
+	 * @param ResourceInterface $item
+	 * @param string $remoteName
+	 */
+	public function gitRemoteRemove(ResourceInterface $item, $remoteName) {
+		$this->getGitCapableLocalDriver()->gitRemoteRemove($item, $remoteName);
 	}
 }

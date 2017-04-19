@@ -433,6 +433,14 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 				->setIcon($iconFactory->getIcon('octicons-history', Icon::SIZE_SMALL));
 			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
 
+			$newButton = $buttonBar->makeInputButton()
+				->setName('git-remotes')
+				->setValue((string)true)
+				->setForm('GitRemotesForm')
+				->setTitle('View and change remotes')// TODO Translation
+				->setIcon($iconFactory->getIcon('octicons-server', Icon::SIZE_SMALL));
+			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
+
 			// TODO Git remote (octicons-server)
 
 			// TODO Git push (octicons-cloud-upload)

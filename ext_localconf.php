@@ -38,3 +38,8 @@ $iconRegistry->registerIcon(
 	\TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
 	['source' => 'EXT:mb_git/Resources/Public/Octicons/history.svg']
 );
+$iconRegistry->registerIcon(
+	'octicons-server',
+	\TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
+	['source' => 'EXT:mb_git/Resources/Public/Octicons/server.svg']
+);

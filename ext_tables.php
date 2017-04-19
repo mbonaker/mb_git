@@ -31,6 +31,8 @@ if (TYPO3_MODE === 'BE') {
 				'commit',
 				'clone',
 				'log',
+				'remotes',
+				'remote',
 			]),
 		],
 		[

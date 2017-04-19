@@ -18,10 +18,12 @@ namespace MatteoBonaker\MbGit\Resource\Driver;
 
 
 use Gitonomy\Git\Admin;
+use Gitonomy\Git\Exception\GitExceptionInterface;
 use Gitonomy\Git\Exception\ProcessException;
 use Gitonomy\Git\Exception\RuntimeException;
 use Gitonomy\Git\Repository;
 use MatteoBonaker\MbGit\Exception\GitException;
+use MatteoBonaker\MbGit\Git\Remote;
 use TYPO3\CMS\Core\Resource\Driver\LocalDriver;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceInterface;
@@ -169,6 +171,100 @@ class GitCapableLocalDriver extends LocalDriver {
 			return $repository->getLog(null, $path);
 		} catch(RuntimeException $exception) {
 			throw new GitException('Could not get the git log of ' . $path . '.', 1492271863, $exception);
+		}
+	}
+
+	/**
+	 * @param ResourceInterface $item
+	 * @return Remote[]
+	 * @throws GitException
+	 */
+	public function gitGetRemotes(ResourceInterface $item) {
+		$repository = $this->getRepository($item);
+		$remoteString = $repository->run('remote', ['-v']);
+		if($remoteString === null) {
+			throw new GitException('Could not get the remotes of this git repository.', 1492622830);
+		}
+		$remoteLines = explode("\n", rtrim($remoteString, "\n"));
+		/** @var Remote[] $remotes */
+		$remotes = [];
+		foreach($remoteLines as $remoteLineString) {
+			list($name, $url) = preg_split('/\\s+/', $remoteLineString);
+			// TODO Use $direction
+			foreach($remotes as $remote) {
+				if($remote->getName() == $name) {
+					continue 2;
+				}
+			}
+			$remotes[] = new Remote($name, $url);
+		}
+		return $remotes;
+	}
+
+	/**
+	 * @param ResourceInterface $item
+	 * @param Remote $remote
+	 * @param string $newUrl
+	 * @return Remote
+	 * @throws GitException
+	 */
+	public function gitRemoteSetUrl(ResourceInterface $item, Remote $remote, $newUrl) {
+		$repository = $this->getRepository($item);
+		try {
+			$repository->run('remote', [
+				'set-url',
+				$remote->getName(),
+				$newUrl,
+			]);
+		} catch(RuntimeException $exception) {
+			throw new GitException('Could not run the git command to set the url of ' . $remote->getName(), 1492629020, $exception);
+		}
+		return new Remote($remote->getName(), $newUrl);
+	}
+
+	/**
+	 * @param ResourceInterface $item
+	 * @param Remote $remote
+	 * @param string $newName
+	 * @return Remote
+	 * @throws GitException
+	 */
+	public function gitRemoteRename(ResourceInterface $item, Remote $remote, $newName) {
+		$repository = $this->getRepository($item);
+		try {
+			$repository->run('remote', [
+				'rename',
+				$remote->getName(),
+				$newName,
+			]);
+		} catch(RuntimeException $exception) {
+			throw new GitException('Could not run the git command to rename the remote ' . $remote->getName(), 1492629180, $exception);
+		}
+		return new Remote($newName, $remote->getUrl());
+	}
+
+	public function gitRemoteAdd(ResourceInterface $item, Remote $remote) {
+		$repository = $this->getRepository($item);
+		try {
+			$repository->run('remote', [
+				'add',
+				$remote->getName(),
+				$remote->getUrl(),
+			]);
+		} catch(RuntimeException $exception) {
+			throw new GitException('Could not run the git command to add the remote ' . $remote->getName(), 1492629424, $exception);
+		}
+	}
+
+	public function gitRemoteRemove(ResourceInterface $item, $remoteName) {
+		$repository = $this->getRepository($item);
+		try {
+			$repository->run('remote', [
+				'remove',
+				$remoteName,
+			]);
+		} catch(RuntimeException $exception) {
+			throw new GitException('Could not run the git command to remove the remote ' . $remoteName, 1492631239, $exception);
 		}
 	}
 }
