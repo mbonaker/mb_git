@@ -33,6 +33,8 @@ use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Resource\Driver\LocalDriver;
 use TYPO3\CMS\Core\Resource\DuplicationBehavior;
 use TYPO3\CMS\Core\Resource\Exception;
+use TYPO3\CMS\Core\Resource\Folder;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\File\ExtendedFileUtility;
@@ -286,7 +288,124 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 	 * Create the panel of buttons for submitting the form or otherwise perform operations.
 	 */
 	protected function registerButtons() {
-		parent::registerButtons();
+		/** @var ButtonBar $buttonBar */
+		$buttonBar = $this->view->getModuleTemplate()->getDocHeaderComponent()->getButtonBar();
+
+		/** @var IconFactory $iconFactory */
+		$iconFactory = $this->view->getModuleTemplate()->getIconFactory();
+
+		/** @var $resourceFactory ResourceFactory */
+		$resourceFactory = GeneralUtility::makeInstance(ResourceFactory::class);
+
+		$lang = $this->getLanguageService();
+
+		// Refresh page
+		$refreshLink = GeneralUtility::linkThisScript(
+			[
+				'target' => rawurlencode($this->folderObject->getCombinedIdentifier()),
+				'imagemode' => $this->filelist->thumbs
+			]
+		);
+		$refreshButton = $buttonBar->makeLinkButton()
+			->setHref($refreshLink)
+			->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:labels.reload'))
+			->setIcon($iconFactory->getIcon('actions-refresh', Icon::SIZE_SMALL));
+		$buttonBar->addButton($refreshButton, ButtonBar::BUTTON_POSITION_RIGHT);
+
+		// Level up
+		try {
+			$currentStorage = $this->folderObject->getStorage();
+			$parentFolder = $this->folderObject->getParentFolder();
+			if ($parentFolder->getIdentifier() !== $this->folderObject->getIdentifier()
+				&& $currentStorage->isWithinFileMountBoundaries($parentFolder)
+			) {
+				$levelUpClick = 'top.document.getElementsByName("navigation")[0].contentWindow.Tree.highlightActiveItem("file","folder'
+					. GeneralUtility::md5int($parentFolder->getCombinedIdentifier()) . '_"+top.fsMod.currentBank)';
+				$levelUpButton = $buttonBar->makeLinkButton()
+					->setHref(BackendUtility::getModuleUrl('file_MbGitList', ['id' => $parentFolder->getCombinedIdentifier()]))
+					->setOnClick($levelUpClick)
+					->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:labels.upOneLevel'))
+					->setIcon($iconFactory->getIcon('actions-view-go-up', Icon::SIZE_SMALL));
+				$buttonBar->addButton($levelUpButton, ButtonBar::BUTTON_POSITION_LEFT, 1);
+			}
+		} catch (\Exception $e) {
+		}
+
+		// Shortcut
+		if ($this->getBackendUser()->mayMakeShortcut()) {
+			$shortCutButton = $buttonBar->makeShortcutButton()->setModuleName('file_MbGitList');
+			$buttonBar->addButton($shortCutButton, ButtonBar::BUTTON_POSITION_RIGHT);
+		}
+
+		// Upload button (only if upload to this directory is allowed)
+		if ($this->folderObject && $this->folderObject->getStorage()->checkUserActionPermission('add',
+				'File') && $this->folderObject->checkActionPermission('write')
+		) {
+			$uploadButton = $buttonBar->makeLinkButton()
+				->setHref(BackendUtility::getModuleUrl(
+					'file_upload',
+					[
+						'target' => $this->folderObject->getCombinedIdentifier(),
+						'returnUrl' => $this->filelist->listURL(),
+					]
+				))
+				->setClasses('t3js-drag-uploader-trigger')
+				->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:cm.upload'))
+				->setIcon($iconFactory->getIcon('actions-edit-upload', Icon::SIZE_SMALL));
+			$buttonBar->addButton($uploadButton, ButtonBar::BUTTON_POSITION_LEFT, 1);
+		}
+
+		// New folder button
+		if ($this->folderObject && $this->folderObject->checkActionPermission('write')
+			&& ($this->folderObject->getStorage()->checkUserActionPermission('add',
+					'File') || $this->folderObject->checkActionPermission('add'))
+		) {
+			$newButton = $buttonBar->makeLinkButton()
+				->setHref(BackendUtility::getModuleUrl(
+					'file_newfolder',
+					[
+						'target' => $this->folderObject->getCombinedIdentifier(),
+						'returnUrl' => $this->filelist->listURL(),
+					]
+				))
+				->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:cm.new'))
+				->setIcon($iconFactory->getIcon('actions-document-new', Icon::SIZE_SMALL));
+			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 1);
+		}
+
+		// Add paste button if clipboard is initialized
+		if ($this->filelist->clipObj instanceof Clipboard && $this->folderObject->checkActionPermission('write')) {
+			$elFromTable = $this->filelist->clipObj->elFromTable('_FILE');
+			if (!empty($elFromTable)) {
+				$addPasteButton = true;
+				$elToConfirm = [];
+				foreach ($elFromTable as $key => $element) {
+					$clipBoardElement = $resourceFactory->retrieveFileOrFolderObject($element);
+					if ($clipBoardElement instanceof Folder && $clipBoardElement->getStorage()->isWithinFolder($clipBoardElement,
+							$this->folderObject)
+					) {
+						$addPasteButton = false;
+					}
+					$elToConfirm[$key] = $clipBoardElement->getName();
+				}
+				if ($addPasteButton) {
+					$confirmText = $this->filelist->clipObj
+						->confirmMsgText('_FILE', $this->folderObject->getReadablePath(), 'into', $elToConfirm);
+					$pasteButton = $buttonBar->makeLinkButton()
+						->setHref($this->filelist->clipObj
+							->pasteUrl('_FILE', $this->folderObject->getCombinedIdentifier()))
+						->setClasses('t3js-modal-trigger')
+						->setDataAttributes([
+							'severity' => 'warning',
+							'content' => $confirmText,
+							'title' => $lang->getLL('clip_paste')
+						])
+						->setTitle($lang->getLL('clip_paste'))
+						->setIcon($iconFactory->getIcon('actions-document-paste-into', Icon::SIZE_SMALL));
+					$buttonBar->addButton($pasteButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
+				}
+			}
+		}
 
 		/** @var ButtonBar $buttonBar */
 		$buttonBar = $this->view->getModuleTemplate()->getDocHeaderComponent()->getButtonBar();
