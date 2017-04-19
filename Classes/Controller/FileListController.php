@@ -407,12 +407,6 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 			}
 		}
 
-		/** @var ButtonBar $buttonBar */
-		$buttonBar = $this->view->getModuleTemplate()->getDocHeaderComponent()->getButtonBar();
-
-		/** @var IconFactory $iconFactory */
-		$iconFactory = $this->view->getModuleTemplate()->getIconFactory();
-
 		// Git button
 		$gitButton = null;
 		if ($this->getGitStorage()->isGitVersioned($this->folderObject)) {

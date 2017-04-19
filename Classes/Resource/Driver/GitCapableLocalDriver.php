@@ -170,7 +170,7 @@ class GitCapableLocalDriver extends LocalDriver {
 		try {
 			return $repository->getLog(null, $path);
 		} catch(RuntimeException $exception) {
-			throw new GitException('Could not get the git log of ' . $path . '.', 1492271863, $exception);
+			throw new GitException('Could not get the git log of ' . $path . '.', 1492622839, $exception);
 		}
 	}
 

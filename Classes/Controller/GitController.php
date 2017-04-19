@@ -120,6 +120,9 @@ class GitController extends ActionController {
 		return $this->currentFolder;
 	}
 
+	/**
+	 * @return GitCapableResourceStorage
+	 */
 	protected function getCurrentStorage() {
 		// TODO Type checking
 		/** @var GitCapableResourceStorage $storage */
