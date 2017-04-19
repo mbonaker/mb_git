@@ -150,4 +150,8 @@ class GitController extends ActionController {
 		$this->forward('index', 'FileList');
 	}
 
+	public function logAction() {
+		$this->view->assign('gitLog', $this->getCurrentStorage()->gitLog($this->getCurrentFolder()));
+	}
+
 }

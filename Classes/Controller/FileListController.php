@@ -425,7 +425,13 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 				->setIcon($iconFactory->getIcon('octicons-check', Icon::SIZE_SMALL));
 			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
 
-			// TODO Git log (octicons-history)
+			$newButton = $buttonBar->makeInputButton()
+				->setName('git-log')
+				->setValue((string)true)
+				->setForm('GitLogForm')
+				->setTitle('View log')// TODO Translation
+				->setIcon($iconFactory->getIcon('octicons-history', Icon::SIZE_SMALL));
+			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
 
 			// TODO Git remote (octicons-server)
 

@@ -33,3 +33,8 @@ $iconRegistry->registerIcon(
 	\TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
 	['source' => 'EXT:mb_git/Resources/Public/Octicons/cloud-download.svg']
 );
+$iconRegistry->registerIcon(
+	'octicons-history',
+	\TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
+	['source' => 'EXT:mb_git/Resources/Public/Octicons/history.svg']
+);

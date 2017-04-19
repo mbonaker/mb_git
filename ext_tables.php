@@ -30,6 +30,7 @@ if (TYPO3_MODE === 'BE') {
 			'Git' => implode(', ', [
 				'commit',
 				'clone',
+				'log',
 			]),
 		],
 		[

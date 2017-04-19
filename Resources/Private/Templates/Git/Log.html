@@ -1,0 +1,72 @@
+<!-- <f:comment> -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en"
+	  xmlns:f="http://typo3.org/ns/TYPO3/Fluid/ViewHelpers">
+<body>
+<!-- </f:comment> -->
+<f:layout name="Default" />
+
+<f:section name="headline">
+	<h1>{headline}</h1>
+</f:section>
+
+<f:section name="content">
+
+	<f:if condition="{gitLog.commits -> f:count()}">
+		<f:then>
+			<div class="table-fit">
+				<table class="table table-striped table-hover" id="typo3-filelist">
+					<thead>
+					<tr>
+						<th>
+							<!-- TODO Translate -->
+							Hash
+						</th>
+						<th>
+							<!-- TODO Translate -->
+							Date
+						</th>
+						<th>
+							<!-- TODO Translate -->
+							Commit author
+						</th>
+						<th>
+							<!-- TODO Translate -->
+							Message
+						</th>
+					</tr>
+					</thead>
+					<tbody>
+					<f:for each="{gitLog.commits}" as="commit">
+						<tr>
+							<td>
+								{commit.shortHash}…
+							</td>
+							<td>
+								<!-- TODO Translate the format -->
+								<f:format.date format="Y-m-d H:i">{commit.authorDate}</f:format.date>
+							</td>
+							<td>
+								{commit.authorName} &lt;{commit.authorEmail}&gt;
+							</td>
+							<td>
+								{commit.message}
+							</td>
+						</tr>
+					</f:for>
+					</tbody>
+				</table>
+			</div>
+		</f:then>
+		<f:else>
+			<!-- TODO Translate -->
+			No commits yet.
+		</f:else>
+	</f:if>
+
+</f:section>
+
+<!-- <f:comment> -->
+</body>
+
+</html>
+<!-- </f:comment> -->

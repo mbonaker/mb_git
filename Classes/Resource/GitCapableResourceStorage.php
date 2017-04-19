@@ -101,4 +101,8 @@ class GitCapableResourceStorage extends \TYPO3\CMS\Core\Resource\ResourceStorage
 	public function gitClone(Folder $folder, $source) {
 		$this->getGitCapableLocalDriver()->gitClone($folder, $source);
 	}
+
+	public function gitLog(ResourceInterface $item) {
+		return $this->getGitCapableLocalDriver()->gitLog($item);
+	}
 }

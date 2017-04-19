@@ -11,6 +11,9 @@
 	<f:form action="clone" controller="Git" id="GitCloneForm" method="post">
 		<f:form.hidden name="target" value="{folderIdentifier}" />
 	</f:form>
+	<f:form action="log" controller="Git" id="GitLogForm" method="post">
+		<f:form.hidden name="target" value="{folderIdentifier}" />
+	</f:form>
 
 	<f:render partial="SearchForm" arguments="{searchWord:''}" />
 

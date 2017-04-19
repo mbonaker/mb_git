@@ -161,4 +161,14 @@ class GitCapableLocalDriver extends LocalDriver {
 		}
 		$this->repositories[] = $repository;
 	}
+
+	public function gitLog(ResourceInterface $item) {
+		$repository = $this->getRepository($item);
+		$path = $this->getAbsoluteResourcePath($item);
+		try {
+			return $repository->getLog(null, $path);
+		} catch(RuntimeException $exception) {
+			throw new GitException('Could not get the git log of ' . $path . '.', 1492271863, $exception);
+		}
+	}
 }
