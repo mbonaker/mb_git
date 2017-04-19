@@ -435,6 +435,14 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 				->setIcon($iconFactory->getIcon('octicons-server', Icon::SIZE_SMALL));
 			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
 
+			$newButton = $buttonBar->makeInputButton()
+				->setName('git-fetch')
+				->setValue((string)true)
+				->setForm('FileListController')
+				->setTitle('Fetch data from remotes')// TODO Translation
+				->setIcon($iconFactory->getIcon('actions-refresh', Icon::SIZE_SMALL));
+			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
+
 			// TODO Git remote (octicons-server)
 
 			// TODO Git push (octicons-cloud-upload)
@@ -475,6 +483,17 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 		return !$this->request->hasArgument('noGitCommitting') || !$this->request->getArgument('noGitCommitting');
 	}
 
+	protected function handleGitException(GitException $gitException) {
+		// Render the error flash message fluid partial
+
+		/** @var StandaloneView $result */
+		$result = GeneralUtility::makeInstance(StandaloneView::class, $this->configurationManager->getContentObject());
+		$result->assign('gitException', $gitException);
+		$result->setTemplatePathAndFilename(ExtensionManagementUtility::extPath('mb_git') . '/Resources/Private/Partials/Exception.html');
+		// TODO Translation
+		$this->addFlashMessage($result->render(), 'Could not process the git command.', AbstractMessage::ERROR);
+	}
+
 	/**
 	 * Process the post commands given to this controller that are related to git.
 	 */
@@ -496,6 +515,23 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 		}
 		if (GeneralUtility::_POST('git-commit') && $this->mayDoGitCommit()) {
 			$this->forward('commit', 'Git');
+		}
+		if (GeneralUtility::_POST('git-fetch')) {
+			$allRemotes = $this->getGitStorage()->gitGetRemotes($this->folderObject);
+			if (count($allRemotes) > 0) {
+				try {
+					foreach ($allRemotes as $remote) {
+						$this->getGitStorage()->gitFetch($this->folderObject, $remote);
+					}
+					// TODO Translation
+					$this->addFlashMessage('Fetched data from all remotes.');
+				} catch (GitException $gitException) {
+					$this->handleGitException($gitException);
+				}
+			} else {
+				// TODO Translation
+				$this->addFlashMessage('No remotes to fetch from...', '', AbstractMessage::WARNING);
+			}
 		}
 	}
 

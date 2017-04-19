@@ -270,4 +270,15 @@ class GitCapableLocalDriver extends LocalDriver {
 			throw new GitException('Could not run the git command to remove the remote ' . $remoteName, 1492631239, $exception);
 		}
 	}
+
+	public function gitFetch(ResourceInterface $item, Remote $remote) {
+		$repository = $this->getRepository($item);
+		try {
+			$repository->run('fetch', [
+				$remote->getName(),
+			]);
+		} catch(RuntimeException $exception) {
+			throw new GitException('Could not fetch from ' . $remote->getUrl(), 1492632471, $exception);
+		}
+	}
 }

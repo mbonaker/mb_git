@@ -151,4 +151,12 @@ class GitCapableResourceStorage extends \TYPO3\CMS\Core\Resource\ResourceStorage
 	public function gitRemoteRemove(ResourceInterface $item, $remoteName) {
 		$this->getGitCapableLocalDriver()->gitRemoteRemove($item, $remoteName);
 	}
+
+	/**
+	 * @param ResourceInterface $item
+	 * @param Remote $remote
+	 */
+	public function gitFetch(ResourceInterface $item, Remote $remote) {
+		$this->getGitCapableLocalDriver()->gitFetch($item, $remote);
+	}
 }
