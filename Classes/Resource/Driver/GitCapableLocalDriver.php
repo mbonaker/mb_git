@@ -192,7 +192,7 @@ class GitCapableLocalDriver extends LocalDriver {
 			if (empty($remoteLineString)) {
 				continue;
 			}
-			list($name, $url) = preg_split('/\\s+/', $remoteLineString);
+			list($name, $url) = preg_split('/[\\t\\s]/', $remoteLineString);
 			// TODO Use $direction
 			foreach($remotes as $remote) {
 				if($remote->getName() == $name) {
