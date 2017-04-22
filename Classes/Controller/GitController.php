@@ -13,6 +13,7 @@ use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Messaging\AbstractMessage;
+use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -159,7 +160,14 @@ class GitController extends ActionController {
 	}
 
 	public function logAction() {
-		$this->view->assign('gitLog', $this->getCurrentStorage()->gitLog($this->getCurrentFolder()));
+		/** @var PageRenderer $pageRenderer */
+		$pageRenderer = $this->view->getModuleTemplate()->getPageRenderer();
+		$pageRenderer->addJsLibrary('gitgraph.js', ExtensionManagementUtility::extRelPath('mb_git') . 'Resources/Public/Contrib/gitgraph.js/src/gitgraph.js');
+		$pageRenderer->addCssLibrary(ExtensionManagementUtility::extRelPath('mb_git') . 'Resources/Public/Contrib/gitgraph.js/src/gitgraph.css');
+
+		$gitLog = $this->getCurrentStorage()->gitLog($this->getCurrentFolder());
+		$this->view->assign('gitLog', $gitLog);
+		$this->view->assign('gitLogCommitCountPlusOne', count($gitLog->getCommits()) + 1);
 	}
 
 	/**

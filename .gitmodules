@@ -7,3 +7,9 @@
 [submodule "Resources/Private/Contrib/Symfony"]
 	path = Resources/Private/Contrib/Symfony
 	url = https://github.com/symfony/process.git
+[submodule "Resources/Public/gitgraph.js"]
+	path = Resources/Public/gitgraph.js
+	url = http://github.com/nicoespeon/gitgraph.js.git
+[submodule "Resources/Public/Contrib/gitgraph.js"]
+	path = Resources/Public/Contrib/gitgraph.js
+	url = http://github.com/nicoespeon/gitgraph.js.git
