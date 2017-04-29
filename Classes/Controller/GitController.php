@@ -9,6 +9,7 @@ use MatteoBonaker\MbGit\Resource\GitCapableResourceFactory;
 use MatteoBonaker\MbGit\Resource\GitCapableResourceStorage;
 use MatteoBonaker\MbGit\Service\ExtensionConfigurationService;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
@@ -38,6 +39,10 @@ class GitController extends ActionController {
 	 * @var Folder
 	 */
 	protected $currentFolder = null;
+
+	protected function getFileListModuleIdentifier() {
+		return 'file_MbGitList';
+	}
 
 	/**
 	 * Returns the current BE user.
@@ -70,6 +75,7 @@ class GitController extends ActionController {
 	}
 
 	public function cloneAction() {
+		$this->addBackButton();
 		if ($this->request->hasArgument('source')) {
 			try {
 				$this->processGitClone();
@@ -81,6 +87,7 @@ class GitController extends ActionController {
 	}
 
 	public function commitAction() {
+		$this->addBackButton();
 		// TODO Add an arrow button to go back
 		$alright = true;
 		if (!$this->getBeUserName()) {
@@ -159,6 +166,7 @@ class GitController extends ActionController {
 	}
 
 	public function logAction() {
+		$this->addBackButton();
 		$this->view->assign('gitLog', $this->getCurrentStorage()->gitLog($this->getCurrentFolder()));
 	}
 
@@ -170,7 +178,40 @@ class GitController extends ActionController {
 		return $GLOBALS['LANG'];
 	}
 
+	/**
+	 * @return ButtonBar
+	 */
+	protected function getButtonBar() {
+		/** @var ButtonBar $buttonBar */
+		$buttonBar = $this->view->getModuleTemplate()->getDocHeaderComponent()->getButtonBar();
+		return $buttonBar;
+	}
+
+	/**
+	 * @return IconFactory
+	 */
+	protected function getIconFactory() {
+		/** @var IconFactory $iconFactory */
+		$iconFactory = $this->view->getModuleTemplate()->getIconFactory();
+		return $iconFactory;
+	}
+
+	protected function addBackButton($uri = null) {
+		if($uri === null) {
+			$uri = BackendUtility::getModuleUrl($this->getFileListModuleIdentifier(), ['id' => $this->request->getArgument('target')]);
+		}
+		$lang = $this->getLanguageService();
+
+		// Back
+		$returnButton = $this->getButtonBar()->makeLinkButton()
+			->setHref($uri)
+			->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:labels.goBack'))
+			->setIcon($this->getIconFactory()->getIcon('actions-view-go-back', Icon::SIZE_SMALL));
+		$this->getButtonBar()->addButton($returnButton, ButtonBar::BUTTON_POSITION_LEFT, 0);
+	}
+
 	public function remotesAction() {
+		$this->addBackButton();
 		$cmd = $this->request->hasArgument('cmd') ? $this->request->getArgument('cmd') : null;
 		if ($cmd === 'delete') {
 			$remoteName = $this->request->getArgument('remote');
@@ -183,11 +224,8 @@ class GitController extends ActionController {
 			}
 		}
 		// Add the buttons
-		/** @var ButtonBar $buttonBar */
-		$buttonBar = $this->view->getModuleTemplate()->getDocHeaderComponent()->getButtonBar();
-
-		/** @var IconFactory $iconFactory */
-		$iconFactory = $this->view->getModuleTemplate()->getIconFactory();
+		$buttonBar = $this->getButtonBar();
+		$iconFactory = $this->getIconFactory();
 
 		$newButton = $buttonBar->makeInputButton()
 			->setName('add')
@@ -221,6 +259,7 @@ class GitController extends ActionController {
 	}
 
 	public function remoteAction() {
+		$this->addBackButton();
 		// Save it
 		$shallCloseAndSave = GeneralUtility::_GP('_saveandclosedok');
 		$shallSave = GeneralUtility::_GP('_savedok');
@@ -257,13 +296,8 @@ class GitController extends ActionController {
 		}
 
 		// Add the buttons
-		/** @var ButtonBar $buttonBar */
-		$buttonBar = $this->view->getModuleTemplate()->getDocHeaderComponent()->getButtonBar();
-
-		/** @var IconFactory $iconFactory */
-		$iconFactory = $this->view->getModuleTemplate()->getIconFactory();
-
-		/** @var LanguageService $lang */
+		$buttonBar = $this->getButtonBar();
+		$iconFactory = $this->getIconFactory();
 		$lang = $this->getLanguageService();
 
 		$saveButton = $buttonBar->makeInputButton()
