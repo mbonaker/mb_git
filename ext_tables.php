@@ -33,6 +33,7 @@ if (TYPO3_MODE === 'BE') {
 				'log',
 				'remotes',
 				'remote',
+				'push',
 			]),
 		],
 		[

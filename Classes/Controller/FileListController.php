@@ -19,6 +19,7 @@ namespace MatteoBonaker\MbGit\Controller;
 
 use MatteoBonaker\MbGit\Exception\GitException;
 use MatteoBonaker\MbGit\FileList;
+use MatteoBonaker\MbGit\Git\Remote;
 use MatteoBonaker\MbGit\Resource\GitCapableResourceFactory;
 use MatteoBonaker\MbGit\Resource\GitCapableResourceStorage;
 use MatteoBonaker\MbGit\Service\ExtensionConfigurationService;
@@ -443,9 +444,32 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 				->setIcon($iconFactory->getIcon('actions-refresh', Icon::SIZE_SMALL));
 			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
 
-			// TODO Git remote (octicons-server)
-
-			// TODO Git push (octicons-cloud-upload)
+			$remotes = $this->getGitStorage()->gitGetRemotes($this->folderObject);
+			if(count($remotes) === 1) {
+				$remote = $remotes[0];
+				$pushButton = $buttonBar->makeInputButton()
+					->setName('git-push')
+					->setValue($remote->getName())
+					->setForm('GitPushForm')
+					->setIcon($iconFactory->getIcon('octicons-cloud-upload', Icon::SIZE_SMALL))
+					->setShowLabelText(true)
+					->setTitle('Push to ' . $remote->getName());
+				$buttonBar->addButton($pushButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
+			} elseif(count($remotes) > 0) {
+				$splitButtonElement = $buttonBar->makeSplitButton();
+				/** @var Remote $remote */
+				foreach($this->getGitStorage()->gitGetRemotes($this->folderObject) as $remote) {
+					$pushButton = $buttonBar->makeInputButton()
+						->setName('git-push')
+						->setValue($remote->getName())
+						->setForm('GitPushForm')
+						->setIcon($iconFactory->getIcon('octicons-cloud-upload', Icon::SIZE_SMALL))
+						->setShowLabelText(true)
+						->setTitle('Push to ' . $remote->getName());
+					$splitButtonElement->addItem($pushButton);
+				}
+				$buttonBar->addButton($splitButtonElement, ButtonBar::BUTTON_POSITION_LEFT, 2);
+			}
 
 		} elseif($this->folderObject) {
 
@@ -466,6 +490,8 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
 
 		}
+
+		$this->view->getModuleTemplate()->getPageRenderer()->loadRequireJsModule('TYPO3/CMS/MbGit/SplitButtons');
 	}
 
 	/**

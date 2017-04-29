@@ -17,6 +17,9 @@
 	<f:form action="remotes" controller="Git" id="GitRemotesForm" method="post">
 		<f:form.hidden name="target" value="{folderIdentifier}" />
 	</f:form>
+	<f:form action="push" controller="Git" id="GitPushForm" method="post">
+		<f:form.hidden name="target" value="{folderIdentifier}" />
+	</f:form>
 
 	<f:render partial="SearchForm" arguments="{searchWord:''}" />
 

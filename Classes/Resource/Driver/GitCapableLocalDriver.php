@@ -281,4 +281,16 @@ class GitCapableLocalDriver extends LocalDriver {
 			throw new GitException('Could not fetch from ' . $remote->getUrl(), 1492632471, $exception);
 		}
 	}
+
+	public function gitPush(ResourceInterface $item, Remote $remote) {
+		$repository = $this->getRepository($item);
+		try {
+			$repository->run('push', [
+				$remote->getName(),
+				':'
+			]);
+		} catch(RuntimeException $exception) {
+			throw new GitException('Could not push to ' . $remote->getUrl(), 1493492464, $exception);
+		}
+	}
 }

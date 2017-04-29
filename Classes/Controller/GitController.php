@@ -141,8 +141,7 @@ class GitController extends ActionController {
 		$this->getCurrentStorage()->gitCommit($this->getCurrentFolder(), $this->request->getArgument('message'), $this->getBeUserEmail(), $this->getBeUserName());
 		// TODO Translation
 		$this->addFlashMessage('Successfully committed the current state.', '', AbstractMessage::OK);
-		// TODO Set the cwd
-		$this->forward('index', 'FileList');
+		$this->forwardToFileList();
 	}
 
 	private function processGitClone() {
@@ -161,8 +160,7 @@ class GitController extends ActionController {
 			// TODO Translation
 			$this->addFlashMessage('Please set the name and e-mail address in the ext settings correctly.', 'Could not clone', AbstractMessage::ERROR);
 		}
-		// TODO Set the cwd
-		$this->forward('index', 'FileList');
+		$this->forwardToFileList();
 	}
 
 	public function logAction() {
@@ -327,6 +325,34 @@ class GitController extends ActionController {
 		}
 
 		$this->view->assign('target', $this->request->getArgument('target'));
+	}
+
+	public function pushAction() {
+		/** @var Remote[] $allRemotes */
+		$allRemotes = $this->getCurrentStorage()->gitGetRemotes($this->getCurrentFolder());
+		$remoteName = GeneralUtility::_GP('git-push');
+		$correctRemote = null;
+		foreach($allRemotes as $remote) {
+			if($remote->getName() === $remoteName) {
+				$correctRemote = $remote;
+			}
+		}
+		if($correctRemote === null) {
+			throw new \RuntimeException('Could not push, because the remote ' . var_export($remoteName, true) . ' seems not to exist.', 1493492141);
+		}
+		try {
+			$this->getCurrentStorage()->gitPush($this->getCurrentFolder(), $correctRemote);
+			// TODO Translation
+			$this->addFlashMessage('Pushed data to ' . $correctRemote->getName() . '.');
+		} catch (GitException $gitException) {
+			$this->handleGitException($gitException);
+		}
+		$this->forwardToFileList();
+	}
+
+	private function forwardToFileList() {
+		GeneralUtility::_GETset('id', $this->request->getArgument('target'));
+		$this->forward('index', 'FileList');
 	}
 
 }
