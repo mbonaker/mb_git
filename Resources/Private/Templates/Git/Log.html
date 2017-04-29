@@ -1,8 +1,9 @@
-<!-- <f:comment> -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en"
-	  xmlns:f="http://typo3.org/ns/TYPO3/Fluid/ViewHelpers">
+	  xmlns:f="http://typo3.org/ns/TYPO3/Fluid/ViewHelpers"
+	  xmlns:v="http://typo3.org/ns/FluidTYPO3/Vhs/ViewHelpers"
+	  xmlns:mbgit="http://typo3.org/ns/MatteoBonaker/MbGit/ViewHelpers">
 <body>
-<!-- </f:comment> -->
+
 <f:layout name="Default" />
 
 <f:section name="headline">
@@ -13,6 +14,35 @@
 
 	<f:if condition="{gitLog.commits -> f:count()}">
 		<f:then>
+			<canvas id="gitGraph"
+			        data-log="{mbgit:array()
+							        -> v:iterator.push(key: 'commits', add: '{mbgit:array(array: {
+							        	hash: commit.hash,
+							        	parentHashes: commit.parentHashes,
+							        	author: {
+							        		name: commit.authorName,
+							        		email: commit.authorEmail,
+							        		date: commit.authorDate
+							        	},
+							        	committer: {
+							        		name: commit.committerName,
+							        		email: commit.committerEmail,
+							        		date: commit.committerDate
+							        	},
+							        	message: commit.message,
+							        	bodyMessage: commit.bodyMessage
+							        }) -> mbgit:arrayMap(traversable: gitLog.commits, as: \'commit\')}')
+							        -> v:iterator.push(key: 'branches', add: '{mbgit:array(array: {
+							        	commitHash: branch.commitHash,
+							        	fullname: branch.fullname,
+							        	name: branch.name
+							        }) -> mbgit:arrayMap(traversable: gitReferences.branches, as: \'branch\')}')
+							        -> v:iterator.push(key: 'tags', add: '{mbgit:array(array: {
+							        	commitHash: tag.commitHash,
+							        	fullname: tag.fullname,
+							        	name: tag.name
+							        }) -> mbgit:arrayMap(traversable: gitReferences.tags, as: \'tag\')}')
+							        -> v:format.json.encode() -> f:format.htmlspecialchars()}" style="margin: 0 0 0 0;"></canvas>
 			<div class="table-fit">
 				<table class="table table-striped table-hover" id="typo3-filelist">
 					<thead>
@@ -40,45 +70,6 @@
 					</tr>
 					</thead>
 					<tbody>
-					<tr>
-						<td rowspan="{gitLogCommitCountPlusOne}">
-							<canvas id="gitGraph"></canvas>
-							<script type="text/javascript">
-								var myTemplateConfig = {
-									branch: {
-										lineWidth: 5,
-										spacingX: 25,
-										showLabel: false
-									},
-									commit: {
-										spacingY: 25,
-										dot: {
-											size: 9
-										},
-										shouldDisplayTooltipsInCompactMode: false
-									}
-								};
-								var myTemplate = new GitGraph.Template( myTemplateConfig );
-								var gitgraph = new GitGraph({
-									'elementId': 'gitGraph',
-									'mode': 'compact',
-									'template': myTemplate
-								});
-								var master = gitgraph.branch("master");
-								gitgraph.commit().commit().commit();         // 3 commits upon HEAD
-								var develop = gitgraph.branch("develop");    // New branch from HEAD
-								develop.commit().commit().commit();
-								master.commit().commit();
-
-								// Well, if you need to go deeper…
-
-								var hotfix = gitgraph.branch({
-									parentBranch: master,
-									name: "hotfix"
-								}).commit();
-							</script>
-						</td>
-					</tr>
 					<f:for each="{gitLog.commits}" as="commit" iteration="iter">
 						<tr>
 							<td>
@@ -108,8 +99,6 @@
 
 </f:section>
 
-<!-- <f:comment> -->
 </body>
 
 </html>
-<!-- </f:comment> -->

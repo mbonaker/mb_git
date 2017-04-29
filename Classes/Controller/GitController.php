@@ -2,6 +2,20 @@
 
 namespace MatteoBonaker\MbGit\Controller;
 
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ *
+ */
+
 
 use MatteoBonaker\MbGit\Exception\GitException;
 use MatteoBonaker\MbGit\Git\Remote;
@@ -15,6 +29,7 @@ use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Messaging\AbstractMessage;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\Folder;
+use TYPO3\CMS\Core\Utility\DebugUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
@@ -163,10 +178,14 @@ class GitController extends ActionController {
 		/** @var PageRenderer $pageRenderer */
 		$pageRenderer = $this->view->getModuleTemplate()->getPageRenderer();
 		$pageRenderer->addJsLibrary('gitgraph.js', ExtensionManagementUtility::extRelPath('mb_git') . 'Resources/Public/Contrib/gitgraph.js/src/gitgraph.js');
+		$pageRenderer->addJsFile(ExtensionManagementUtility::extRelPath('mb_git') . 'Resources/Public/JavaScript/gitlog.js');
 		$pageRenderer->addCssLibrary(ExtensionManagementUtility::extRelPath('mb_git') . 'Resources/Public/Contrib/gitgraph.js/src/gitgraph.css');
 
 		$gitLog = $this->getCurrentStorage()->gitLog($this->getCurrentFolder());
+		$gitReferenceBag = $this->getCurrentStorage()->gitGetReferenceBag($this->getCurrentFolder());
 		$this->view->assign('gitLog', $gitLog);
+		$this->view->assign('gitReferences', $gitReferenceBag);
+		$this->view->assign('repository', $gitLog->getSingleCommit());
 		$this->view->assign('gitLogCommitCountPlusOne', count($gitLog->getCommits()) + 1);
 	}
 

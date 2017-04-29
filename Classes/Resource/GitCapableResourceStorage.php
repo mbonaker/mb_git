@@ -159,4 +159,8 @@ class GitCapableResourceStorage extends \TYPO3\CMS\Core\Resource\ResourceStorage
 	public function gitFetch(ResourceInterface $item, Remote $remote) {
 		$this->getGitCapableLocalDriver()->gitFetch($item, $remote);
 	}
+
+	public function gitGetReferenceBag(ResourceInterface $item) {
+		return $this->getGitCapableLocalDriver()->gitGetReferenceBag($item);
+	}
 }

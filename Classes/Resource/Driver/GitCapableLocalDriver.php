@@ -281,4 +281,13 @@ class GitCapableLocalDriver extends LocalDriver {
 			throw new GitException('Could not fetch from ' . $remote->getUrl(), 1492632471, $exception);
 		}
 	}
+
+	public function gitGetReferenceBag(ResourceInterface $item) {
+		$repository = $this->getRepository($item);
+		try {
+			return $repository->getReferences();
+		} catch(RuntimeException $exception) {
+			throw new GitException('Could not get the git log of ' . $repository->getPath() . '.', 1493131804, $exception);
+		}
+	}
 }
