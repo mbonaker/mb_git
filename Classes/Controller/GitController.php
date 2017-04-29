@@ -88,7 +88,6 @@ class GitController extends ActionController {
 
 	public function commitAction() {
 		$this->addBackButton();
-		// TODO Add an arrow button to go back
 		$alright = true;
 		if (!$this->getBeUserName()) {
 			// TODO Translation
@@ -100,18 +99,28 @@ class GitController extends ActionController {
 			$this->addFlashMessage('You need to set a valid email of your backend user first.', 'Error', AbstractMessage::ERROR);
 			$alright = false;
 		}
-		if ($alright && $this->request->hasArgument('run')) {
-			try {
-				$this->processGitCommit();
-			} catch(GitException $gitException) {
-				$this->handleGitException($gitException);
+		if ($alright) {
+
+			$saveAndCloseButton = $this->getButtonBar()->makeInputButton()
+				->setName('_saveandclosedok')
+				->setValue('1')
+				->setForm('GitCommitForm')
+				->setTitle($this->getLanguageService()->sL('LLL:EXT:lang/locallang_core.xlf:rm.saveCloseDoc'))
+				->setShowLabelText(true)
+				->setIcon($this->getIconFactory()->getIcon('actions-document-save-close', Icon::SIZE_SMALL));
+
+			$this->getButtonBar()->addButton($saveAndCloseButton, ButtonBar::BUTTON_POSITION_LEFT, 1);
+
+			$shallCloseAndSave = GeneralUtility::_GP('_saveandclosedok');
+			if ($shallCloseAndSave) {
+				try {
+					$this->processGitCommit();
+				} catch (GitException $gitException) {
+					$this->handleGitException($gitException);
+				}
 			}
-		}
-		if (!$alright) {
-			// TODO Set the cwd
-			$this->forward('index', 'FileList', null, [
-				'noGitCommitting' => true
-			] + $this->request->getArguments());
+		} else {
+			$this->forwardToFileList();
 		}
 		$this->view->assign('target', $this->request->getArgument('target'));
 	}
