@@ -1,5 +1,4 @@
-[*.php]
-indent_style = tab
+root = true
 
-[*.html]
+[*]
 indent_style = tab
