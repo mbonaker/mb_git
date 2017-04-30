@@ -473,13 +473,24 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 
 		} elseif($this->folderObject) {
 
-			$newButton = $buttonBar->makeInputButton()
+			$splitButtonElement = $buttonBar->makeSplitButton();
+			$pushButton = $buttonBar->makeInputButton()
 				->setName('git-init')
 				->setValue((string)true)
 				->setForm('FileListController')
 				->setTitle('Git init') // TODO Translation
+				->setShowLabelText(true)
 				->setIcon($iconFactory->getIcon('tx-mbgit-git-logo', Icon::SIZE_SMALL));
-			$buttonBar->addButton($newButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
+			$splitButtonElement->addItem($pushButton);
+			$pushButton = $buttonBar->makeInputButton()
+				->setName('git-init-bare')
+				->setValue((string)true)
+				->setForm('FileListController')
+				->setTitle('Git init (bare)') // TODO Translation
+				->setShowLabelText(true)
+				->setIcon($iconFactory->getIcon('tx-mbgit-git-logo', Icon::SIZE_SMALL));
+			$splitButtonElement->addItem($pushButton);
+			$buttonBar->addButton($splitButtonElement, ButtonBar::BUTTON_POSITION_LEFT, 2);
 
 			$newButton = $buttonBar->makeInputButton()
 				->setName('git-clone')
@@ -524,12 +535,15 @@ class FileListController extends \TYPO3\CMS\Filelist\Controller\FileListControll
 	 * Process the post commands given to this controller that are related to git.
 	 */
 	public function processGitCommand() {
-		if (GeneralUtility::_POST('git-init')) {
+		$doInit = GeneralUtility::_POST('git-init');
+		$bareInit = GeneralUtility::_POST('git-init-bare');
+		$doInit = $doInit || $bareInit;
+		if ($doInit) {
 			$extConf = ExtensionConfigurationService::getInstance();
 			$name = $extConf->getGitConfigUserName();
 			$mail = $extConf->getGitConfigUserEmail();
 			if (!empty($name) && GeneralUtility::validEmail($mail)) {
-				$this->getGitStorage()->gitInit($this->folderObject);
+				$this->getGitStorage()->gitInit($this->folderObject, $bareInit);
 				$this->getGitStorage()->gitConfig($this->folderObject, 'user.name', $extConf->getGitConfigUserName());
 				$this->getGitStorage()->gitConfig($this->folderObject, 'user.email', $extConf->getGitConfigUserEmail());
 				// TODO Translation

@@ -51,10 +51,11 @@ class GitCapableResourceStorage extends \TYPO3\CMS\Core\Resource\ResourceStorage
 	 * Initialize a git repository at $folder.
 	 *
 	 * @param Folder $folder
+	 * @param bool $bare
 	 * @return \Gitonomy\Git\Repository
 	 */
-	public function gitInit(Folder $folder) {
-		return $this->getGitCapableLocalDriver()->gitInit($folder);
+	public function gitInit(Folder $folder, $bare = false) {
+		return $this->getGitCapableLocalDriver()->gitInit($folder, $bare);
 	}
 
 	/**
