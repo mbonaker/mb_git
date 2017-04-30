@@ -24,9 +24,11 @@ use Gitonomy\Git\Exception\RuntimeException;
 use Gitonomy\Git\Repository;
 use MatteoBonaker\MbGit\Exception\GitException;
 use MatteoBonaker\MbGit\Git\Remote;
+use Symfony\Component\Process\ProcessBuilder;
 use TYPO3\CMS\Core\Resource\Driver\LocalDriver;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceInterface;
+use TYPO3\CMS\Core\Utility\DebugUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class GitCapableLocalDriver extends LocalDriver {
@@ -78,23 +80,6 @@ class GitCapableLocalDriver extends LocalDriver {
 	}
 
 	/**
-	 * Get a hierarchical list of resources that are part of the path of $item (including itself).
-	 *
-	 * @param ResourceInterface $item The resource of which to get the path items
-	 * @return ResourceInterface[] The hierarchical list of resources that are part of the path of $item (including $item itself).
-	 */
-	protected function getPathResources(ResourceInterface $item) {
-		/** @var ResourceInterface[] $elements */
-		$elements = [];
-		do {
-			$elements[] = $item;
-			$item = $item->getParentFolder();
-		} while(!in_array($item, $elements));
-
-		return $elements;
-	}
-
-	/**
 	 * Returns the absolute path of a file or folder.
 	 *
 	 * @param ResourceInterface $item
@@ -105,27 +90,97 @@ class GitCapableLocalDriver extends LocalDriver {
 	}
 
 	/**
+	 * This internal method is used to create a process object.
+	 *
+	 * Copied from the private Gitonomy\Git\Admin::getProcess
+	 */
+	private static function getProcess($command, array $args = array(), array $options = array()) {
+		$is_windows = defined('PHP_WINDOWS_VERSION_BUILD');
+		$options = array_merge(array(
+			'environment_variables' => $is_windows ? array('PATH' => getenv('PATH')) : array(),
+			'command' => 'git',
+			'process_timeout' => 3600,
+		), $options);
+
+		$builder = ProcessBuilder::create(array_merge(array($options['command'], $command), $args));
+		$builder->inheritEnvironmentVariables(false);
+
+		$process = $builder->getProcess();
+		$process->setEnv($options['environment_variables']);
+		$process->setTimeout($options['process_timeout']);
+		$process->setIdleTimeout($options['process_timeout']);
+
+		return $process;
+	}
+
+	protected function getRepositoryPath(ResourceInterface $item) {
+		$process = self::getProcess('rev-parse', [
+			'--git-dir'
+		]);
+		if ($item instanceof Folder) {
+			$path = realpath($this->getAbsoluteResourcePath($item));
+		} else {
+			$path = dirname(realpath($this->getAbsoluteResourcePath($item)));
+		}
+		$process->setWorkingDirectory($path);
+		$process->run();
+		if (!$process->isSuccessful()){
+			return null;
+		} else {
+			// Stripping off the last newline (file names may end in new line chars, so rtrim(..., "\n") is no option
+			$dir = substr($process->getOutput(), 0, -1);
+			// If the dir is relative, it is relative to $path so we need to resolve it.
+			if (substr($dir, 0, 1) !== '/') {
+				$dir = realpath($path . '/' . $dir);
+			}
+			return $dir;
+		}
+	}
+
+	protected function getWorkingDirectoryPath(ResourceInterface $item) {
+		if ($item instanceof Folder) {
+			$path = realpath($this->getAbsoluteResourcePath($item));
+		} else {
+			$path = dirname(realpath($this->getAbsoluteResourcePath($item)));
+		}
+		$process = self::getProcess('rev-parse', [
+			'--is-inside-work-tree'
+		]);
+		$process->setWorkingDirectory($path);
+		$process->run();
+		if (!filter_var(rtrim($process->getOutput()), FILTER_VALIDATE_BOOLEAN)) {
+			return null;
+		}
+		// We are in a working tree here!
+		$process = self::getProcess('rev-parse', [
+			'--show-toplevel'
+		]);
+		$process->setWorkingDirectory($path);
+		$process->run();
+		return substr($process->getOutput(), 0, -1);
+	}
+
+	/**
 	 * Returns the git repository which $item is part of.
 	 *
 	 * @param ResourceInterface $item The folder being part of the returned repository
 	 * @return Repository
 	 */
 	public function getRepository(ResourceInterface $item) {
-		$elements = $this->getPathResources($item);
-		foreach($elements as $element) {
-			$elementPath = $this->getAbsoluteResourcePath($element);
-			foreach($this->repositories as $repository) {
-				if($repository->getWorkingDir() === $elementPath) {
-					return $repository;
-				}
-			}
-			if($element instanceof Folder && $element->hasFolder('.git')) {
-				$repository = new Repository($elementPath);
-				$this->repositories[] = $repository;
+		$path = $this->getRepositoryPath($item);
+
+		if($path === null) {
+			return null;
+		}
+
+		foreach($this->repositories as $repository) {
+			if($repository->getPath() === $path) {
 				return $repository;
 			}
 		}
-		return null;
+		$repository = new Repository($path);
+		$this->repositories[] = $repository;
+		return $repository;
 	}
 
 	public function gitCommit(ResourceInterface $item, $message, $mail, $name) {
